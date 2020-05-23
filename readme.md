@@ -6,7 +6,7 @@ A deep fusion model with the input of alignment-based feature representations, f
 
 ```
 # Simplified tree diagram of files
-./GCFM_sources
+./GCFM
 ├── requirements.txt
 ├── scripts
 │   ├── CNN
@@ -28,7 +28,7 @@ A deep fusion model with the input of alignment-based feature representations, f
 
 ```
 # Simplified tree diagram of files
-./GCFM_sources
+./GCFM
 ├── scripts
 │   ├── make_profile.py
 │   ├── prediction.py
