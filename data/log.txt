@@ -1,0 +1,9 @@
+snRNA,2069
+miRNA,1910
+YRNA,835
+tRNA,420
+snoRNA_C/D,324
+snoRNA_H/ACA,161
+scaRNA,52
+5s_rRNA,15
+Vault_RNA,6
