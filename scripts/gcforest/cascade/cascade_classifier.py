@@ -1,12 +1,5 @@
 # -*- coding:utf-8 -*-
-"""
-Description: A python 2.7 implementation of gcForest proposed in [1]. A demo implementation of gcForest library as well as some demo client scripts to demostrate how to use the code. The implementation is flexible enough for modifying the model or
-fit your own datasets.
-Reference: [1] Z.-H. Zhou and J. Feng. Deep Forest: Towards an Alternative to Deep Neural Networks. In IJCAI-2017.  (https://arxiv.org/abs/1702.08835v2 )
-Requirements: This package is developed with Python 2.7, please make sure all the demendencies are installed, which is specified in requirements.txt
-ATTN: This package is free for academic usage. You can run it at your own risk. For other purposes, please contact Prof. Zhi-Hua Zhou(zhouzh@lamda.nju.edu.cn)
-ATTN2: This package was developed by Mr.Ji Feng(fengj@lamda.nju.edu.cn). The readme file and demo roughly explains how to use the codes. For any problem concerning the codes, please feel free to contact Mr.Feng.
-"""
+
 import os
 import os.path as osp
 import pickle
@@ -28,6 +21,7 @@ def check_dir(path):
 
 
 def calc_accuracy(y_true, y_pred, name, prefix=""):
+    '''Calculate accuracy.'''
     acc = 100. * np.sum(np.asarray(y_true) == y_pred) / len(y_true)
     LOGGER.info('{}Accuracy({})={:.2f}%'.format(prefix, name, acc))
     return acc
@@ -40,29 +34,14 @@ def get_opt_layer_id(acc_list):
 
 
 class CascadeClassifier(object):
+    '''Cascade classifier.
+
+    Args:
+
+        ca_config: Parameters.
+    '''
     def __init__(self, ca_config):
-        """
-        Parameters (ca_config)
-        ----------
-        early_stopping_rounds: int
-            when not None , means when the accuracy does not increase in early_stopping_rounds, the cascade level will stop automatically growing
-        max_layers: int
-            maximum number of cascade layers allowed for exepriments, 0 means use Early Stoping to automatically find the layer number
-        n_classes: int
-            Number of classes
-        est_configs:
-            List of CVEstimator's config
-        look_indexs_cycle (list 2d): default=None
-            specification for layer i, look for the array in look_indexs_cycle[i % len(look_indexs_cycle)]
-            defalut = None <=> [range(n_groups)]
-            .e.g.
-                look_indexs_cycle = [[0,1],[2,3],[0,1,2,3]]
-                means layer 1 look for the grained 0,1; layer 2 look for grained 2,3; layer 3 look for every grained, and layer 4 cycles back as layer 1
-        data_save_rounds: int [default=0]
-        data_save_dir: str [default=None]
-            each data_save_rounds save the intermidiate results in data_save_dir
-            if data_save_rounds = 0, then no savings for intermidiate results
-        """
+
         self.ca_config = ca_config
         self.early_stopping_rounds = self.get_value("early_stopping_rounds", None, int, required=True)
         self.max_layers = self.get_value("max_layers", 0, int)

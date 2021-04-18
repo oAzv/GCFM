@@ -4,7 +4,16 @@
 from torch import nn
 
 class EncoderCNN(nn.Module):
+    '''
+    Alexnet pre-training model call, network structure adaptation modification.
+    '''
     def __init__(self, model):
+        '''Initialize the model, deconstruct it.
+
+        Args:
+
+            model: Alexnet pre-training model.
+        '''
         super(EncoderCNN, self).__init__()
 
         self.feature = nn.Sequential(*list(model.children())[:-1])
@@ -24,6 +33,14 @@ class EncoderCNN(nn.Module):
         )
 
     def forward(self, x):
+        '''Forward calculation to extract the required features.
+
+        Args:
+            x: The gray image data.
+
+        Returns:
+            The SIR feature.
+        '''
         x = self.feature(x)
         x = x.view(x.size(0), -1)
 

@@ -14,9 +14,36 @@ plt.switch_backend('agg')
 
 from chainer import serializers
 
+__doc__ = """
+CNNmodel- Define the relevant content of CNN module
+===================================================
 
+**CNNmodel** training, prediction, and feature extraction.
+
+.. Note::
+    The CNN module is referenced from Aoki et al., and fixes some problems.
+    See the original version in http://www.dna.bio.keio.ac.jp/cnn/
+    
+Main Functions
+--------------
+Here are just a few of the things that **CNNmodel** does well:
+
+  - CNN model training, prediction, and feature extraction.
+
+Usages
+------
+
+See Function calls.
+
+Main Program Functions
+----------------------
+
+"""
 
 class TestModeEvaluator(extensions.Evaluator):
+    '''
+    Model evaluation.
+    '''
     
     def evaluate(self):
         model = self.get_target('main')
@@ -26,7 +53,26 @@ class TestModeEvaluator(extensions.Evaluator):
         return ret
 
 class CNN(Chain):
+    '''
+    Model structure definition and computational definition.
+    '''
     def __init__(self, output_ch1, output_ch2, filter_height, filter_width, n_units, n_label):
+        '''The model takes the parameters and initializes them.
+
+        Args:
+
+            output_ch1: The first layer convolution outputs the number of channels.
+
+            output_ch2: The second layer convolution outputs the number of channels.
+
+            filter_height: The height of the convolution kernel.
+
+            filter_width: The width of the convolution kernel
+
+            n_units: Number of hidden layer elements.
+
+            n_label: Number of labels.
+        '''
         super(CNN, self).__init__(
             conv1 = L.Convolution2D(1, output_ch1, (filter_height, filter_width)),
             bn1 = L.BatchNormalization(output_ch1),
@@ -36,6 +82,18 @@ class CNN(Chain):
             fc2 = L.Linear(None, n_label))
 
     def __call__(self, x, train=True):
+        '''Forward calculation process.
+
+        Args:
+
+            x: The data.
+
+            train: Training or not.
+
+        Returns:
+
+            The label.
+        '''
         h1 = F.max_pooling_2d(F.relu(self.bn1(self.conv1(x))), ksize=(10,1), stride=8)
         h2 = F.max_pooling_2d(F.relu(self.bn2(self.conv2(h1))), ksize=(14,1), stride=8)
         h3 = F.dropout(F.relu(self.fc1(h2)), ratio=0.5)
@@ -43,6 +101,14 @@ class CNN(Chain):
         return y
 
     def extract(self, x):
+        '''Use CNN module to extract features.
+
+        Args:
+            x: The data.
+
+        Returns:
+            A feature of fixed length.
+        '''
         with chainer.using_config('train', False):
             with chainer.using_config('enable_backprop', False):
                 h1 = F.max_pooling_2d(F.relu(self.bn1(self.conv1(x))), ksize=(10, 1), stride=8)
@@ -109,7 +175,31 @@ class MyClassifier(Chain):
 
 
 class Runchainer:
+    '''
+    Runchainer.
+    '''
     def __init__(self, batchsize, outdir, output_ch1, output_ch2, filter_height, width, n_units, n_label):
+        ''' CNN module initialization.
+
+        Args:
+
+            batchsize: Batch size.
+
+            outdir: Output directory.
+
+            output_ch1: The first layer convolution outputs the number of channels.
+
+            output_ch2: The second layer convolution outputs the number of channels.
+
+            filter_height: The height of the convolution kernel.
+
+            width: The width of the convolution kernel
+
+            n_units: Number of hidden layer elements.
+
+            n_label: Number of labels.
+
+        '''
         self.batchsize = batchsize
         self.outdir = outdir
         self.output_ch1 = output_ch1
@@ -120,6 +210,23 @@ class Runchainer:
         self.n_label = n_label
 
     def learn(self, train, test, gpu, epoch, cnn_model_path):
+        '''Training model.
+
+        Args:
+
+            train: The training set.
+
+            test: The testing set.
+
+            gpu: GPU configuration.
+
+            epoch: Epoch.
+
+            cnn_model_path: CNN model path.
+
+        Returns:
+            Model.
+        '''
 
         self.epoch = epoch
 
@@ -165,27 +272,49 @@ class Runchainer:
         print('model saved')
         return model
 
-    def predict(self, test_data, test_label, predictorpath):
-        
+    def predict(self, test_data, test_label, predict_path):
+        ''' CNN model prediction.
+
+        Args:
+
+            test_data: The testing set.
+
+            test_label: The testing set label.
+
+            predict_path:
+
+        Returns:
+            ACC, F1
+        '''
 
         cnn = CNN(self.output_ch1, self.output_ch2, self.filter_height, \
                                      self.width, self.n_units, self.n_label)
         predictor = SClassifier(cnn, self.n_label)
-        serializers.load_npz(predictorpath, predictor)
+        serializers.load_npz(predict_path, predictor)
 
 
         acc, f1 = predictor(test_data, test_label)
 
         return acc, f1
 
-    def extract(self, data, predictorpath):
+    def extract(self, data, predict_path):
+        '''Extract features.
 
+        Args:
+
+            data: Data for features to be extracted.
+
+            predict_path:
+
+        Returns:
+            Extracted features.
+        '''
         with chainer.using_config('train', False):
             with chainer.using_config('enable_backprop', False):
                 cnn = CNN(self.output_ch1, self.output_ch2, self.filter_height, \
                           self.width, self.n_units, self.n_label)
                 predictor = SClassifier(cnn, self.n_label)
-                serializers.load_npz(predictorpath, predictor)
+                serializers.load_npz(predict_path, predictor)
                 data = cnn.extract(data)
 
         return data

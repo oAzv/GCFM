@@ -4,7 +4,7 @@ import os
 import pickle
 import time
 from multiprocessing.pool import Pool
-
+import argparse
 import chainer
 import gc as gc_m
 import numpy as np
@@ -12,8 +12,46 @@ import pandas as pd
 
 from scripts.utils import check_path
 
+__doc__ = """
+train_cnn_multi - a training, testing and feature extraction scripts for CNN module
+===================================================================================
+**train_cnn_multi** is a Python script used to provide CNN module training, testing and feature extraction. 
+In this section, the existing model can be used to multi-process the features required by the backend GCForest classifier. 
+The CNN module can also be retrained and tested.
 
-def run_cnn(X_train, X_test, y_train, y_test, i, c_size, cnn_model_path, retrain=False):
+Main Functions
+--------------
+Here are just a few of the things that **train_cnn_multi** does well:
+  - Test the CNN module, or retrain.
+  - Use CNN module to extract features.
+
+Main Program Functions
+----------------------
+"""
+
+def run_cnn(X_train, X_test, y_train, y_test, i, cnn_model_path, retrain=False):
+    '''Training and testing CNN module.
+
+    Args:
+
+        X_train: The training set.
+
+        X_test: The testing set.
+
+        y_train: The training set label.
+
+        y_test: The testing set label.
+
+        i: i th number.
+
+        cnn_model_path: Model store and read paths.
+
+        retrain: Retraining or not.
+
+    Returns:
+
+        CNN model.
+    '''
     cnn_train = chainer.datasets.TupleDataset(X_train, y_train)
     cnn_test = chainer.datasets.TupleDataset(X_test, y_test)
     from scripts.CNN import CNNmodel as Model
@@ -23,10 +61,10 @@ def run_cnn(X_train, X_test, y_train, y_test, i, c_size, cnn_model_path, retrain
     gpu = -1
     out = './logs/cnn/result'
 
-    output_ch1 = 64  # number of 1st convolutional layer's filters
-    output_ch2 = 128  # number of 2nd convolutional layer's filters
-    filter_height = 15  # filter size of convolutional layer
-    n_units = 1632  # 1632 # number of middel layer's units
+    output_ch1 = 64
+    output_ch2 = 128
+    filter_height = 15
+    n_units = 1632
     n_label = 2
     width = X_train.shape[3]
     outdir = out + str(i)
@@ -44,18 +82,35 @@ def run_cnn(X_train, X_test, y_train, y_test, i, c_size, cnn_model_path, retrain
         return acc, f1, RC
 
 
-def rc_extract(data):
-    data = RC.extract(data[np.newaxis, :, :, :], '../model/cnn_5' + '.model')
+def rc_extract(data, model_path='../model/cnn_5.model'):
+    '''Use CNN module to extract the features of the data.
+
+    Args:
+
+        data: Data for features to be extracted.
+
+        model_path: CNN Model store and read paths.
+
+    Returns:
+
+        The data processed by CNN.
+    '''
+    data = RC.extract(data[np.newaxis, :, :, :], model_path)
 
     return data.array[0]
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='train_cnn:')
+    parser.add_argument('--dir', '-d',
+                        default='../features/profile',
+                        help='dir for multi-view features')
 
-    dir = '../features/profile'
+    args = parser.parse_args()
+
     print("Running...")
-    data = dir + "/ncRNApair_data" + ".npy"
-    label = dir + "/ncRNApair_label" + ".npy"
+    data = args.dir + "/ncRNApair_data" + ".npy"
+    label = args.dir + "/ncRNApair_label" + ".npy"
 
     X = np.load(data)
 

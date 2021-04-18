@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 import pickle
 import time
-
+import argparse
 import gc as gc_m
 import pandas as pd
 from sklearn.metrics import accuracy_score, f1_score
@@ -10,8 +10,30 @@ from sklearn.metrics import accuracy_score, f1_score
 from scripts.gcforest.gcforest import GCForest
 from scripts.utils import check_path
 
+__doc__ = """
+train_gc - a training, testing scripts for gcforest module
+==========================================================
+
+**train_gc** is a Python script for gcforest module training, testing.
+
+Main Functions
+--------------
+Here are just a few of the things that **train_gc** does well:
+
+  - Configuration and training of GCForest modules.
+
+Main Program Functions
+----------------------
+
+"""
 
 def get_ca_config():
+    '''Get the structure of gcForest cascading modules.
+
+    Returns:
+
+        Configuration information.
+    '''
     config = {}
     ca_config = {}
     ca_config["random_state"] = 777
@@ -32,6 +54,21 @@ def get_ca_config():
 
 
 def run_gc(X_train, X_test, y_train, gc_model_path):
+    '''Train gcForest models, predict results and save models.
+
+    Args:
+
+        X_train: The training set.
+
+        X_test: The testing set
+
+        y_train: The training set label.
+
+        gc_model_path: Model saving path.
+
+    Returns:
+        The prediction of y.
+    '''
     config = get_ca_config()
     gc = GCForest(config)
     gc.set_keep_model_in_mem(True)
@@ -45,8 +82,10 @@ def run_gc(X_train, X_test, y_train, gc_model_path):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='train_gc:')
 
-    dir = '../features/profile'
+    args = parser.parse_args()
+
     print("Running...")
 
     result_gc = []

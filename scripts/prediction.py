@@ -15,10 +15,37 @@ from scripts.utils import check_path, run_DAFS, run_RNAfold, make_8bit, \
 
 warnings.filterwarnings('ignore')
 
+__doc__ = """
+prediction - a script that predicts a pairwise ncRNA
+====================================================
+
+**prediction** is a Python script for pairwise ncRNA prediction.
+
+Main Functions
+--------------
+Here are just a few of the things that **prediction** does well:
+
+  - Complete pairwise ncRNA relation prediction.
+
+Main Program Functions
+----------------------
+
+"""
 
 def get_seq_pair(data, path_to_pairFasta):
-    import re
+    '''Build all the ncRNA data sets.
 
+    Args:
+
+        data: A pairwise sequence of string formats.
+
+        path_to_pairFasta: Files that temporarily store pairs of sequences.
+
+    Returns:
+
+        ncRNA data sets.
+    '''
+    import re
     path_to_pairFasta.write(data)
     path_to_pairFasta.seek(0)
     dataset = []
@@ -30,6 +57,19 @@ def get_seq_pair(data, path_to_pairFasta):
 
 
 def get_image_fea(dataset, features_dir, tag):
+    '''Obtain the image features obtained by the pre-training model.
+
+    Args:
+
+        dataset: ncRNA data sets.
+
+        features_dir: The path of the image feature.
+
+        tag: The name of the pre-training model.
+
+    Returns:
+        Image features.
+    '''
     fx_path = os.path.join(features_dir, tag + '.pkl')
     wk = pd.read_pickle(fx_path)
     dl1 = wk[wk['name'] == str(dataset[0][0])]['vector'].values[0]
@@ -38,6 +78,21 @@ def get_image_fea(dataset, features_dir, tag):
 
 
 def make_pairFASTA(dataset, env, fa_path):
+    '''Construct multi-view feature representation.
+
+    Args:
+
+        dataset: All the ncRNA data.
+
+        env: The environment in which the predicted results are stored.
+
+        fa_path: Files that temporarily store pairs of sequences.
+
+    Returns:
+
+        multi-view feature representation.
+
+    '''
     train_data = np.empty((0, 800, 38), dtype=np.float32)
 
     pair1, pair2 = run_DAFS(fa_path)
@@ -170,16 +225,28 @@ def make_pairFASTA(dataset, env, fa_path):
 
 
 def rc_extract(data, model='../model/cnn_4' + '.model'):
+    '''Use CNN module to extract the features of the data.
+
+        Args:
+
+            data: Data for features to be extracted.
+
+            model: CNN Model store and read paths.
+
+        Returns:
+
+            The data processed by CNN.
+    '''
     from scripts.CNN import CNNmodel as Model
     batchsize = 128  # 128
     epoch = 10
     gpu = -1
     out = './logs/cnn/result'
 
-    output_ch1 = 64  # number of 1st convolutional layer's filters
-    output_ch2 = 128  # number of 2nd convolutional layer's filters
-    filter_height = 15  # filter size of convolutional layer
-    n_units = 1632  # 1632 # number of middel layer's units
+    output_ch1 = 64
+    output_ch2 = 128
+    filter_height = 15
+    n_units = 1632
     n_label = 2
 
     width = data.shape[2]
@@ -194,6 +261,17 @@ def rc_extract(data, model='../model/cnn_4' + '.model'):
 
 
 def gcfm_predict(seq1, seq2):
+    '''Predicting the results of pairwise sequences.
+
+    Args:
+
+        seq1: ncRNA nucleotide sequence A.
+
+        seq2: ncRNA nucleotide sequence B.
+
+    Returns:
+        Predicted results.
+    '''
     prediction_env = '../output/prediction'
     result = prediction_env + '/results/'
     from tempfile import NamedTemporaryFile as NTF
@@ -217,6 +295,7 @@ def gcfm_predict(seq1, seq2):
 
 
 if __name__ == "__main__":
+
     parser = argparse.ArgumentParser(description='GCFM classification:')
     parser.add_argument('--seq1', '-s1',
                         default='>SNORD16_ENST00000362803.1\nTGCAATGATGTCGTAATTTGCGTCTTACTCTGTTCTCAGCGACAGTTGCCTGCTGTCAGTAAGCTGGTACAGAAGGTTGACGAAAATTCTTACTGAGCA',

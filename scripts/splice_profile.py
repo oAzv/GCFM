@@ -1,14 +1,46 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-
+import argparse
 import multiprocessing
 import time
 
 import gc
 import numpy as np
 
+__doc__ = """
+splice_profile - a scripts for dataset construction
+====================================================
 
-def assembledata_sp10(ddir, n=10, *, mulit=True, stop_num=1):
+**splice_profile** is a Python script for building dataset with multi-view feature representations.
+
+Main Functions
+--------------
+Here are just a few of the things that **splice_profile** does well:
+
+  - Multi-process building data sets in equal parts.
+  - A single process builds a data set.
+
+Main Program Functions
+----------------------
+
+"""
+
+def assembledata_sp10(ddir:str, n=10, *, mulit=True, stop_num=1):
+    '''Multi-process builds j times ten equal data sets.
+
+    Args:
+
+        ddir: Data path.
+
+        n: The number of equal parts.
+
+        mulit: Whether to multiprocess.
+
+        stop_num: Processing rounds.
+
+    Returns:
+
+    '''
     checkdata = np.load(ddir + "/portion/ncRNApair_data0.npy")
     dsize = len(checkdata) + 1
     genelen = len(checkdata[0])
@@ -52,12 +84,21 @@ def assembledata_sp10(ddir, n=10, *, mulit=True, stop_num=1):
 
     else:
         for j in range(stop_num):
-            process_data10(j)
+            process_data10(n, j)
 
     return
 
 
 def assembledata(ddir):
+    '''Build a data set that contains all the data.
+
+    Args:
+
+        ddir: Data path.
+
+    Returns:
+
+    '''
     checkdata = np.load(ddir + "/portion/ncRNApair_data0.npy")
     dsize = len(checkdata) + 1
     genelen = len(checkdata[0])
@@ -86,10 +127,7 @@ def assembledata(ddir):
     np.save(ddir + "/ncRNApair_data.npy", data)
     np.save(ddir + "/ncRNApair_label.npy", label)
 
-
-if __name__ == '__main__':
-    datadir = '../features/profile/'
-
+def main(datadir):
     print("Makeing data...")
     start = time.time()
 
@@ -98,3 +136,13 @@ if __name__ == '__main__':
     print("Complete makeing data.")
     spend_time = time.time() - start
     print("Loding time:{0}".format(spend_time) + "[sec]")
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description='splice_profile:')
+    parser.add_argument('--datadir', '-d',
+                        default='../features/profile/',
+                        help='paths for multi-view features')
+    args = parser.parse_args()
+
+    main(args.datadir)
